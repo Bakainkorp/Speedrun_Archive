@@ -18,19 +18,20 @@ using namespace std;
 
 struct Date
 {
-	int Day;
-	int Month;
-	int Year;
+	int day;
+	int month;
+	int year;
 };
 
 struct Time
 {
-	int Hour;
-	int Minute;
-	int Second;
-	int Millisecond;
+	int hour;
+	int minute;
+	int second;
+	int millisecond;
 };
 
+//A run consists of a time (hhh:mm:ss:mmm or hhh:mm:ss), a date (dd/mm/yyyy), and a count (used for chronology).
 struct Run
 {
 	Date runDate;
@@ -38,23 +39,24 @@ struct Run
 	int number;
 };
 
+// As of now, there is no function with iostream. Therefore, the vector "allRuns" has to be filled in main. That may or may not need to be changed later down the line.
 class Game
 {
 	public:
-		void recordRunDate(int d, int m, int y);
-		void recordRunTime(int h, int m, int s, int ms);
-		void storeRun();
 		void storeAllRun();
 		void returnAverage();
 		void returnBest();
 
 		//These are done.
+		void storeRun(Run run);
 		void isRecordMil(bool ans);
 		bool returnRecordMil ();
 		void recordName(string name);
+		void clearAll();
 
 	private:
-		void convertTime();
+		//This function will be used for the recording portion of the program, as the prototype will record the time in milliseconds.
+		void convertTime(double ms);
 		bool recordMil;
 		vector<Run> allRuns;
 		string gameName;
