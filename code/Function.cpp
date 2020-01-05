@@ -3,7 +3,15 @@ Filename: Function.cpp
 
 Purpose: Implementation file for all misc. functions that are required in Speedrun.cpp
 
-Note: This file is NOT finished.
+----Notes----
+
+- The file is able to run, but is NOT finished.
+- All couts left in comments are used for checking if certain events are fulfilled. For example, see line 65.
+
+----Notable Bugs / Optimizations----
+
+- With, the current saved.txt file's configuration, a period is needed at the end of the run for the year to be properly saved, and therefore be valid. While this isn't a huge issue, it is something that can be fixed. This problem is on Line 269. [QWER]
+- Dealing with game titles with numbers for the isName function [WERT]
 
 */
 
@@ -12,8 +20,12 @@ Note: This file is NOT finished.
 
 #include "Function.h"
 
+//[WERT]
+//This function is a temporary measure to ensure that the getline records the name properly
 bool isName(string str)
 {
+	//This checks if a alphabetic character is on the  getline.
+	//POTENTIAL OPTIMIZATION: designating a three-five character sequence to determine a non-alphabetic character as its first letter
 	if (((str [0] >= 97) && (str [0] <= 122)) || ((str [0] >= 65) && (str [0] <= 90)))
 	{
 		return true;
@@ -24,8 +36,10 @@ bool isName(string str)
 	}
 };
 
+//This function is a temporary measure to ensure that the getline records the millisecond properly
 bool isMil(string str)
 {
+	//The last characters of a game from the getline should ALWAYS be ",1" or ",0"
 	if (str [str.length() - 1] == 1)
 	{
 		return true;
@@ -59,7 +73,7 @@ void initialize(vector <Game> game)
 	//Step 2: There is no "Saved.txt" file, and a new one will be created.
 	if (saved.fail())
 	{
-		cout << "\"Saved.txt\" file failed, creating new one..." << endl;
+//		cout << "\"Saved.txt\" file failed, creating new one..." << endl;
 		ofstream NewFile;
 		NewFile.open ("Saved.txt");
 		NewFile.close();
@@ -75,10 +89,10 @@ void initialize(vector <Game> game)
 		{
 			if (isName (lineGet) == 1)
 			{
-				dummy.recordName(lineGet);
+				dummy.recordName(lineGet.substr(0, lineGet.length() - 2));
 				dummy.isRecordMil(isMil(lineGet));
 				runCheck = true;
-				cout << "Game Title is " << lineGet.substr(0, lineGet.length() - 2) << endl;
+//				cout << "Game Title is " << lineGet.substr(0, lineGet.length() - 2) << endl;
 			}
 		}
 		else
@@ -86,15 +100,19 @@ void initialize(vector <Game> game)
 			if (lineGet == "")
 			{
 				runCheck = false;
+				game.push_back(dummy);
+//				cout << "There are a total of " << dummy.returnRunCount() << " runs saved for the game " << dummy.returnGameName() << "." << endl;
 				dummy.clearAll();
-				cout << "Switch" << endl;
 				dummyTime.millisecond = 0;
 			}
 			else
 			{
+				//The flags determine what portion of the run from getLine the program is reading.
+				
 				int flag = 0, dummyNumber = 0;
 				for (int i = 0; i < (lineGet.length() - 1); i++)
 				{
+					//Flag 0 determines the run number
 					if (flag == 0)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -109,10 +127,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 0" << endl;
+//							cerr << "Problem at flag 0" << endl;
 							return;
 						}
 					}
+					//Flag 1 determines the number of hours for the run
 					else if (flag == 1)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -127,10 +146,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 1" << endl;
+//							cerr << "Problem at flag 1" << endl;
 							return;
 						}
 					}
+					//Flag 2 determines the number of minutes for the run
 					else if (flag == 2)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -145,10 +165,12 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 2" << endl;
+//							cerr << "Problem at flag 2" << endl;
 							return;
 						}
 					}
+					//Flag 3 determines the number of seconds for the run
+					//It will branch off to Flag -3 if milliseconds are involved.
 					else if (flag == 3)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -170,10 +192,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 3" << endl;
+//							cerr << "Problem at flag 3" << endl;
 							return;
 						}
 					}
+					//Flag -3 determines the number of milliseconds for the run
 					else if (flag == -3)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -189,10 +212,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag -3" << endl;
+//							cerr << "Problem at flag -3" << endl;
 							return;
 						}
 					}
+					//Flag 4 determines the number of date in terms of days of the run
 					else if (flag == 4)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -207,10 +231,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 4" << endl;
+//							cerr << "Problem at flag 4" << endl;
 							return;
 						}
 					}
+					//Flag 5 determines the number of date in terms of months of the run
 					else if (flag == 5)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -225,10 +250,11 @@ void initialize(vector <Game> game)
 						}
 						else
 						{
-							cerr << "Problem at flag 5" << endl;
+//							cerr << "Problem at flag 5" << endl;
 							return;
 						}
 					}
+					//Flag 6 determines the number of date in terms of years of the run
 					else if (flag == 6)
 					{
 						if ((lineGet [i] >= 48) && (lineGet [i] <= 57))
@@ -241,8 +267,12 @@ void initialize(vector <Game> game)
 							dummyDate.year = dummyNumber;
 							dummyNumber = 0;
 							dummyRun.runDate = dummyDate;
-							game.push_back(dummy);
+							dummy.storeRun(dummyRun);
 
+//[QWER]						//The following code below will be useful for Step 19 and Step 20
+							//It should eventually be its own function
+
+/*
 							cout << "Run #: " << dummyRun.number << " - ";
 							if (dummyRun.runTime.hour < 10)
 							{
@@ -278,25 +308,37 @@ void initialize(vector <Game> game)
 								cout << "0";
 							}
 							cout << dummyRun.runDate.month << "/" << dummyRun.runDate.year << endl;
+*/
 						}
 						else
 						{
-							cerr << "Problem at flag 6" << endl;
+//							cerr << "Problem at flag 6" << endl;
 							return;
 						}
 					}
 					else
 					{
-						cerr << "Flag overflow" << endl;
+//						cerr << "Flag overflow" << endl;
 						return;
 					}
 				}
 			}
 		}
 	}
-
 	saved.close();
 	return;
 };
 
 #endif // FUNCTION_CPP
+
+/*
+
+----Files that are directly dependent on this file----
+- Speedrun.cpp
+
+----Files this file is dependent on----
+- game.cpp
+- game.h
+- Function.h
+
+*/
