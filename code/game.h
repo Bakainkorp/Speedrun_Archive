@@ -1,7 +1,11 @@
 /*
 Filename: game.h
 
-Purpose: Header file for all the structs, as well as the class Game.
+Purpose: Header file for the class Game, and all structs involved with it
+
+----Notes----
+
+- The file is able to run, but is NOT finished.
 
 */
 
@@ -39,20 +43,25 @@ struct Run
 	int number;
 };
 
-// As of now, there is no function with iostream. Therefore, the vector "allRuns" has to be filled in main. That may or may not need to be changed later down the line.
+//See game.cpp for descriptions of functions
 class Game
 {
 	public:
 		void storeAllRun();
-		void returnAverage();
-		void returnBest();
+		void clearRun(int number);
+
+		//These functions may be pushed into private, depending on the implementation for Step 16
+		Run returnAverage();
+		Run returnBest();
 
 		//These are done.
+		int returnRunCount ();
 		void storeRun(Run run);
 		void isRecordMil(bool ans);
 		bool returnRecordMil ();
 		void recordName(string name);
 		void clearAll();
+		string returnGameName();
 
 	private:
 		//This function will be used for the recording portion of the program, as the prototype will record the time in milliseconds.
@@ -63,3 +72,12 @@ class Game
 };
 
 #endif // GAME_H
+
+/*
+
+----Files that are directly dependent on this file----
+- game.cpp
+
+----Files this file is dependent on----
+
+*/
