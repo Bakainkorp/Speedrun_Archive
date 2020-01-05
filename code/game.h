@@ -1,6 +1,6 @@
 /*
 Filename: game.h
-
+ 
 Purpose: Header file for the class Game, and all structs involved with it
 
 ----Notes----
