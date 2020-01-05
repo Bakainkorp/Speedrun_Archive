@@ -7,11 +7,14 @@ Note: This file is NOT finished. This is a TEMPORARY main file, and is subject t
 
 */
 
-#include "game.cpp"
+#include "Function.cpp"
 
 using namespace std;
 
 int main() 
 {
+	vector<Game> game;
+	initialize(game);
+
 	return 0;
 }
