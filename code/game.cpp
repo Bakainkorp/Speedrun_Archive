@@ -12,22 +12,11 @@ Note: This file is NOT finished.
 #ifndef GAME_CPP
 #define GAME_CPP
 
-//This will record the date of a run for a game.
-void Game::recordRunDate(int d, int m, int y)
-{
-	return;
-};
-
-//This will record the time for a run of a game.
-//If recordMil is 0, then ms will not be used in the function.
-void Game::recordRunTime(int h, int m, int s, int ms)
-{
-	return;
-};
 
 //This will store a singular run.
-void Game::storeRun()
+void Game::storeRun(Run run)
 {
+	allRuns.push_back(run);
 	return;
 };
 
@@ -72,6 +61,19 @@ void Game::isRecordMil(bool ans)
 
 void Game::convertTime(double ms)
 {
+	return;
 };
+
+// This will clear all information. This is for the sole use of reading from the 
+// NOTE: recordMil will NOT be altered.
+void Game::clearAll()
+{
+	gameName = "";
+	while (allRuns.size() > 0)
+	{
+		allRuns.pop_back();
+	}
+	return;
+}
 
 #endif // GAME_CPP
