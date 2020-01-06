@@ -1,6 +1,6 @@
 # Speedrun Archive
 
-Speedrun Archive is a tool to record speedruns for various video games, as well as other time-sensitive tasks (such as racing, timing, . When it reaches the point of completion, this program will be able to:
+Speedrun Archive is a tool to record speedruns for various video games, as well as other time-sensitive tasks (such as racing, timing, etc.). When it reaches the point of completion, this program will be able to:
 
 * Store, save, and load all runs for multiple games
 * Record Speedruns through manual and automated means
