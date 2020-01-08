@@ -3,9 +3,15 @@ Filename: game.cpp
 
 Purpose: Implementation file for functions in game.h
 
+Date last worked on (dd-mm-yy): 06-01-20
+
 ----Notes----
 
 - The file is able to run, but is NOT finished.
+
+----Notable Bugs / Optimizations----
+
+- game::storeAllRun() may not be used for this file.
 
 */
 
@@ -13,6 +19,12 @@ Purpose: Implementation file for functions in game.h
 
 #ifndef GAME_CPP
 #define GAME_CPP
+
+//This returns if the game has any runs stored
+bool Game::isEmpty()
+{
+	return (allRuns.size() == 0);
+}
 
 //This returns the name of a game
 string Game::returnGameName()
@@ -95,6 +107,7 @@ void Game::clearAll()
 	{
 		allRuns.pop_back();
 	}
+	recordMil = new bool;
 	
 	return;
 }
