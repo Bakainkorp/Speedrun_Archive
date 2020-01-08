@@ -1,11 +1,17 @@
 /*
 Filename: game.h
- 
+
 Purpose: Header file for the class Game, and all structs involved with it
+
+Date last worked on (dd-mm-yy): 06-01-20
 
 ----Notes----
 
 - The file is able to run, but is NOT finished.
+
+----Notable Bugs / Optimizations----
+
+- game::storeAllRun() may not be used for this file.
 
 */
 
@@ -55,6 +61,7 @@ class Game
 		Run returnBest();
 
 		//These are done.
+		bool isEmpty();
 		int returnRunCount ();
 		void storeRun(Run run);
 		void isRecordMil(bool ans);
