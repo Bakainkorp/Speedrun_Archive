@@ -3,6 +3,10 @@ Filename: Speedrun.cpp
 
 Purpose: Main file
 
+Date last worked on (dd-mm-yy): 06-01-20
+
+----How To Run----
+
 To run the file, first clone the directory into your local machine. 
 Go to the directory via Terminal or a similar command line interface.
 Type "g++ Speednrun.cpp".
@@ -14,22 +18,22 @@ After it compiles, type "./a.out" to run the program.
 
 */
 
-#include "Function.cpp"
 #include "menu.cpp"
 
 using namespace std;
 
 int main() 
 {
-	vector<Game> game;
-	initialize(game);
+	vector<Game> data;
+	initialize(data);
 	bool exit = false;
 
 	while (exit == false)
 	{
-		exit = M1_Question(0);
+		exit = M1_Question(0, data);
 	}
 
+	//Step 53
 	return 0;
 }
 
