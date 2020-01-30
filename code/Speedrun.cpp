@@ -3,13 +3,13 @@ Filename: Speedrun.cpp
 
 Purpose: Main file
 
-Date last worked on (dd-mm-yy): 06-01-20
+Date last worked on (dd-mm-yy): 29-01-20
 
 ----How To Run----
 
 To run the file, first clone the directory into your local machine. 
 Go to the directory via Terminal or a similar command line interface.
-Type "g++ Speednrun.cpp".
+Type "g++ Speednrun.cpp -std=c++11".
 After it compiles, type "./a.out" to run the program.
 
 ----Notes----
