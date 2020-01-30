@@ -3,15 +3,17 @@ Filename: game.h
 
 Purpose: Header file for the class Game, and all structs involved with it
 
-Date last worked on (dd-mm-yy): 06-01-20
+Date last worked on (dd-mm-yy): 29-01-20
 
 ----Notes----
 
-- The file is able to run, but is NOT finished.
+- The file is able to run. It is close to completion, but at this point, optimizations are still possible.
 
 ----Notable Bugs / Optimizations----
 
-- game::storeAllRun() may not be used for this file.
+- [QWER] Some of these may need to be shoved into the private section of the class Game
+- [WERT] These may need to be in the Function.cpp, as it is not dependent on the class itself
+- [ERTY] This information may need to be removed, as having the run number has no purpose that its count in allRuns cannot fulfill
 
 */
 
@@ -23,6 +25,7 @@ Date last worked on (dd-mm-yy): 06-01-20
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <ctime>
 
 using namespace std;
 
@@ -46,6 +49,7 @@ struct Run
 {
 	Date runDate;
 	Time runTime;
+	//[ERTY]
 	int number;
 };
 
@@ -53,26 +57,33 @@ struct Run
 class Game
 {
 	public:
-		void storeAllRun();
-		void clearRun(int number);
 
-		//These functions may be pushed into private, depending on the implementation for Step 16
-		Run returnAverage();
-		Run returnBest();
-
-		//These are done.
-		bool isEmpty();
-		int returnRunCount ();
-		void storeRun(Run run);
-		void isRecordMil(bool ans);
-		bool returnRecordMil ();
-		void recordName(string name);
+		// These are done.
+		// [QWER]
 		void clearAll();
+		void clearRun(vector <int> number);
+		void isMil(bool ans);
+		void listAllRuns();
+		void printDate(Date dummy); //[WERT]
+		void printRun(Run dummy);   //[WERT]
+		void printTime(Time dummy);	//[WERT]
+		void recordName(string name);
+		void replaceRun (int runNum, Run dummy);
+		void storeRun(Run run);
+
+		Run returnBest();
+		Run returnRun(int runNum);
+
+		bool isEmpty();
+		bool returnMil ();
+
+		Time returnAverage();
+
+		int returnRunCount();
+
 		string returnGameName();
 
 	private:
-		//This function will be used for the recording portion of the program, as the prototype will record the time in milliseconds.
-		void convertTime(double ms);
 		bool recordMil;
 		vector<Run> allRuns;
 		string gameName;
