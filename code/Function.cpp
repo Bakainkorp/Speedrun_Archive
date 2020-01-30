@@ -3,19 +3,26 @@ Filename: Function.cpp
 
 Purpose: Implementation file for all misc. functions that are required in Speedrun.cpp
 
-Date last worked on (dd-mm-yy): 06-01-20
+Date last worked on (dd-mm-yy): 29-01-20
 
 ----Notes----
 
-- The file is able to run, but is NOT finished.
-- All couts left in comments are used for checking if certain events are fulfilled. For example, see line 123.
+- The file is able to run. It is close to completion, but at this point, optimizations are still possible.
+- All couts left in comments are used for checking if certain events are fulfilled. For example, see line 597. Eventually, these may be deleted.
 
 ----Notable Bugs / Optimizations----
 
-- With, the current saved.txt file's configuration, a period and a space is needed at the end of the run for the year to be properly saved, and therefore be valid. While this isn't a huge issue, it is something that can be fixed. This problem is on Line 319. [QWER]
-- Dealing with game titles with numbers for the isName function [WERT]
-- Potential optimization: allowing single/double digit millisecond or single digit second/minute[ERTY]
-- Having a cancel function put in userCreatedRun and createGame, in case the user wants to back out of here [RTYU]
+- [UIOP] With, the current saved.txt file's configuration, a period and a space is needed at the end of the run for the year to be properly saved, and therefore be valid.
+- [FGHJ] Dealing with game titles with numbers for the isName function 
+- [SDFG] Potential optimization: allowing single/double digit millisecond or single digit second/minute such as three hours, two minutes, five seconds (3:2:5)
+- [DFGH] Having a cancel function put in userCreatedRun and createGame, in case the user wants to back out of here 
+- [GHJK] This function needs appropriate date structures (ie. 31 days, 12 months, etc.)
+- [HJKL] This may need to be changed, if we allow a date such as April 6th 2000 (6-4-2000)
+- [YUIO] Any function with this tag will likely be unncessary later in development, as an executable program will likely not use command line entry
+- [ZXCV] This may need to be in a separate file, as it deviates from the "menu" format but is still a menu related item
+- [XCVB] Edge case of a game title being a numerical value, such as abbreviating "77: And Two Stars Meet Again" as "77", while also having 77 games stored. With its current implementation, it would return the game titled "77", rather than the 77th game in data
+- [CVBN] This will be in later optimizations, but there can be a new option for a user to give themselves tips (a vector of strings) that will pop up when the appropriate amount of time has passed
+- [VBNM] Insertion sort will be fine for now, but when the number of runs starts exceeding double digits a different sorting method would be more suitable.
 
 */
 
@@ -24,12 +31,97 @@ Date last worked on (dd-mm-yy): 06-01-20
 
 #include "Function.h"
 
-//[WERT]
-//This function is a temporary measure to ensure that the getline records the name properly
+//////////////////////////////////////////////---------Bool functions---------//////////////////////////////////////////////
+
+// This checks if the user's input is valid in terms of the date
+// [GHJK]
+bool isDateValid(string str)
+{
+	int numCount = 0, flag = 0;
+
+	//[HJKL]
+	if (str.length() != 10)
+	{
+		cout << "The date is not valid due to an incorrect size" << endl << endl;
+		cout << "Please retype the date." << endl;
+		cout << "_______" << endl;
+		return false;
+	}
+
+	for (int abc = 0; abc <= (str.length() - 1); abc++)
+	{
+		if (str [abc] == 45)
+		{
+			if ((flag == 1) || (flag == 0))
+			{
+				if (numCount == 2)
+				{
+					flag++;
+					numCount = 0;
+				}
+				else
+				{
+					// [HJKL]
+					cout << "The date is not valid due to invalid numerical values" << endl << endl;
+					cout << "Please retype the date." << endl;
+					cout << "_______" << endl;
+					return false;
+				}
+			}
+			else if (flag == 2)
+			{
+				if (numCount == 4)
+				{
+					flag++;
+					numCount = 0;
+				}
+				else
+				{
+					// [HJKL]
+					cout << "The date is not valid due to invalid numerical values" << endl << endl;
+					cout << "Please retype the date." << endl;
+					cout << "_______" << endl;
+					return false;
+				}
+			}
+		}
+		else
+		{
+			if ((str [abc] >= 48) && (str [abc] <= 57))
+			{
+				numCount++;
+			}
+			else
+			{
+				cout << "The date is not valid due to non numerical values" << endl << endl;
+				cout << "Please retype the date." << endl;
+				cout << "_______" << endl;
+				return false;
+			}
+		}
+	}
+	return true;
+};
+
+// This function is a temporary measure to ensure that the getline records the millisecond properly for Step 1
+bool isMilStored(string str)
+{
+	// The last characters of a game title from the getline in Step1 should ALWAYS be ",1" or ",0"
+	if (str [str.length() - 1] == 49)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+};
+
+// This function is a measure to ensure that the getline records the name properly
 bool isName(string str)
 {
 	//This checks if a alphabetic character is on the getline.
-	//POTENTIAL OPTIMIZATION: designating a three to five character sequence to determine a non-alphabetic character as its first letter
+	//[FGHJ]
 	if (((str [0] >= 97) && (str [0] <= 122)) || ((str [0] >= 65) && (str [0] <= 90)))
 	{
 		return true;
@@ -40,21 +132,113 @@ bool isName(string str)
 	}
 };
 
-//This function is a temporary measure to ensure that the getline records the millisecond properly for Step 1
-bool isMil(string str)
+// This function returns if the string given is a number
+bool isNumber(string str)
 {
-	//The last characters of a game from the getline in Step1 should ALWAYS be ",1" or ",0"
-	if (str [str.length() - 1] == 1)
+	for (int qwe = 0; qwe < (str.length() - 1); qwe++)
 	{
-		return true;
+		if (!((str [qwe] >= 48) && (str [qwe] <= 57)))
+		{
+			return false;
+		}
 	}
-	else
+	return true;
+}
+
+// This checks if the user's input is valid in terms of time
+bool isTimeValid (string str, bool mil)
+{
+	int colonCount = 0, numCount = 0;
+	bool initMil = mil;
+
+	for (int j = (str.length() - 1); j >= 0; j--)
 	{
+		if (str [j] == 58)
+		{
+			colonCount++;
+
+			//[SDFG]
+			if ((numCount < 2) || (numCount > 3))
+			{
+				cout << "The run is not valid due to invalid numerical input." << endl;
+				if (mil == true)
+				{
+					cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
+				}
+				else
+				{
+					cout << "Follow the format of \"hhh:mm:ss\"." << endl << endl;
+				}
+				cout << "Please retype the time." << endl;
+				cout << "_______" << endl;
+				return false;
+			}
+
+			if ((numCount == 3) && (mil == true))
+			{
+				if (initMil == true)
+				{
+					if (colonCount != 1)
+					{
+						cout << "The run is not valid due to invalid numerical input." << endl;
+						cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
+						cout << "Please retype the time." << endl;
+						cout << "_______" << endl;
+						return false;
+					}
+					else
+					{
+						initMil = false;
+					}
+				}
+				else
+				{
+					cout << "The run is not valid due to invalid numerical input." << endl;
+					cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
+					cout << "Please retype the time." << endl;
+					cout << "_______" << endl;
+					return false;
+				}
+			}
+
+			numCount = 0;
+		}
+		else if ((str [j] >= 48) && (str [j] <= 57))
+		{
+			numCount++;
+		}
+		else
+		{
+			cout << "The run is not valid due to non numerical values or colons" << endl << endl;
+			cout << "Please retype the time." << endl;
+			cout << "_______" << endl;
+			return false;
+		}
+	}
+
+	if ((colonCount < 2) && (mil == true))
+	{
+		cout << "This run is not valid due to too little colons." << endl;
+		cout << "If your is less than a minute long, use the format \"00:ss:mmm\"." << endl << endl;
+		cout << "Please retype the time." << endl;
+		cout << "_______" << endl;
 		return false;
 	}
+
+	if ((colonCount < 1) && (mil == false))
+	{
+		cout << "This run is not valid due to too little colons." << endl;
+		cout << "If your is less than a minute long, use the format \"00:00:ss\"." << endl << endl;
+		cout << "Please retype the time." << endl;
+		cout << "_______" << endl;
+		return false;
+	}
+
+	return true;
 };
 
-//This determines the answer the user inputs in Step 13a, Step 28, Step 5, Step 25, Step 51
+// This determines the answer the user inputs in Step 13a, Step 28, Step 5, Step 25, Step 51
+// [YUIO]
 bool YN_Answer (string str)
 {
 	str = stringInterpreter (str);
@@ -80,25 +264,317 @@ bool YN_Answer (string str)
 	}
 };
 
-// This function will take the user's input and change all lowercase alphabetic characters to uppercase
-// This is for the ease of using menus
-string stringInterpreter (string str)
+//////////////////////////////////////////////---------Time functions---------//////////////////////////////////////////////
+
+// This changes the time from milliseconds to a hours:minutes:seconds(:milliseconds) format
+Time convertTime(long double totalMilliseconds, bool mil)
 {
-	if (str == "")
+	Time dummy;
+	dummy.hour = 0;
+	dummy.minute = 0;
+	dummy.second = 0;
+	
+	while (totalMilliseconds >= 1000)
 	{
-		return str;
+		dummy.second++;
+		totalMilliseconds = totalMilliseconds - 1000;
 	}
-	for (int i = 0; i <= (str.length() - 1); i++)
+	while (dummy.second >= 60)
 	{
-		if ((str [i] >= 97) && (str [i] <= 122))
-		{
-			str [i] = str [i] - 32;
-		}
+		dummy.minute++;
+		dummy.second = dummy.second - 60;
 	}
-	return str;
+	while (dummy.minute >= 60)
+	{
+		dummy.hour++;
+		dummy.minute = dummy.minute - 60;
+	}
+
+	if (mil == 1)
+	{
+		dummy.millisecond = totalMilliseconds;
+	}
+	else
+	{
+		dummy.millisecond = 0;
+	}
+
+	return dummy;
 };
 
-//Step 0: The program starts
+// This converts the string given into a time, provided it passes isTimeValid
+Time stringToTime (string str, bool mil)
+{
+	Time dummy;
+	dummy.hour = 0;
+	dummy.minute = 0;
+	dummy.second = 0;
+	dummy.millisecond = 0;
+	
+	int flag = 0;
+
+	for (int k = 0; k <= (str.length() - 1); k++)
+	{
+		// Flag (0) records hours
+		if (flag == 0)
+		{
+			if (str [k] == 58)
+			{
+				flag = 1;
+			}
+			else
+			{
+				dummy.hour = (dummy.hour * 10) + (str [k] - 48);
+			}
+		}
+		else if (flag == 1)
+		{
+			if (str [k] == 58)
+			{
+				flag = 2;
+			}
+			else
+			{
+				dummy.minute = (dummy.minute * 10) + (str [k] - 48);
+			}
+		}
+		else if (flag == 2)
+		{
+			if (str [k] == 58)
+			{
+				flag = 3;
+			}
+			else
+			{
+				dummy.second = (dummy.second * 10) + (str [k] - 48);
+			}
+		}
+		else
+		{
+			dummy.millisecond = (dummy.millisecond * 10) + (str [k] - 48);
+		}
+	}
+
+	return dummy;
+};
+
+//////////////////////////////////////////////---------Date functions---------//////////////////////////////////////////////
+
+// This returns today's date
+Date getToday()
+{
+	Date dummy;
+
+    time_t t = time(0);
+    tm* now = localtime(&t);
+
+	dummy.year = now->tm_year + 1900;
+	dummy.month = now->tm_mon + 1;
+	dummy.day = now->tm_mday;
+
+	return dummy;
+};
+
+// This converts the string given into a date, provided it passes isDateValid
+Date stringToDate (string str)
+{
+	Date dummy;
+	dummy.day = 0;
+	dummy.month = 0;
+	dummy.year = 0;
+	
+	int flag = 0;
+
+	for (int bcd = 0; bcd <= (str.length() - 1); bcd++)
+	{
+		if (flag == 0)
+		{
+			if (str [bcd] == 45)
+			{
+				flag = 1;
+			}
+			else
+			{
+				dummy.day = (dummy.day * 10) + (str [bcd] - 48);
+			}
+		}
+		else if (flag == 1)
+		{
+			if (str [bcd] == 45)
+			{
+				flag = 2;
+			}
+			else
+			{
+				dummy.month = (dummy.month * 10) + (str [bcd] - 48);
+			}
+		}
+		else
+		{
+			dummy.year = (dummy.year * 10) + (str [bcd] - 48);
+		}
+	}
+	return dummy;
+};
+
+//////////////////////////////////////////////---------Int functions---------//////////////////////////////////////////////
+
+// This returns the game location in data
+// Step 29, Step 6
+int loadGame(string str, vector <Game> data)
+{
+	// loadGame will have two ways of selecting games: via exact name or numerical value
+	Game dummy;
+	int num = 0;
+
+	// [XCVB]
+	// This checks if the user types in a numerical value instead of the title of the game
+	for (int sdf = 0; sdf <= (str.length() - 1); sdf++)
+	{
+		if ((str [sdf] >= 48) && (str [sdf] <= 57))
+		{
+			num = (num * 10) + (str [sdf] - 48);
+		}
+		else
+		{
+			num = INT_MIN;
+		}
+	}
+
+	// This checks if the user types in a numerical value instead of the title of the game
+	for (int asd = 0; asd <= (data.size() - 1); asd++)
+	{
+		dummy = data [asd];
+		if (str == dummy.returnGameName())
+		{
+			return asd;
+		}
+		else if ((asd + 1) == num)
+		{
+			return asd;
+		}
+	}
+
+	// If the function hits this point, the function will return INT_MIN to state a fail point
+	return num;
+};
+
+
+// This converts a string into an int, provided it passes isNumber
+int stringToInt(string str)
+{
+	int dummy = 0;
+	for (int qwe = 0; qwe <= (str.length() - 1); qwe++)
+	{
+		dummy = (dummy * 10) + ((str [qwe]) - 48);
+	}
+	return dummy;
+};
+
+//////////////////////////////////////////////---------Run functions---------//////////////////////////////////////////////
+
+// This function is the entirety
+// Step 7
+Run timer(bool mil, Game game)
+{
+	Run dummy;
+	string str = "";
+
+	cout << "Press enter when you're ready to go." << endl;
+	cout << "_______" << endl;
+	getline (cin, str);
+    auto start = chrono::system_clock::now();
+	cout << "Press enter when you have completed your game." << endl;
+	cout << "Type \"restart\" if you would like to start over." << endl;
+	// [CVBN]
+	cout << "_______" << endl;
+	getline (cin, str);
+	// Step 9
+    auto end = chrono::system_clock::now();
+
+	// Step 8
+	str = stringInterpreter (str);
+	if ((str == "R") || (str == "RESTART"))
+	{
+		return timer(mil, game);
+	}
+
+	chrono::duration<long double> elapsed_milliseconds = (end-start) * 1000;
+
+	dummy.runTime = convertTime(elapsed_milliseconds.count(), game.returnMil());
+
+	cout << "Your time is " << dummy.runTime.hour << ":";
+	if (dummy.runTime.minute < 10)
+	{
+		cout << "0";
+	}
+	cout << dummy.runTime.minute << ":";
+	if (dummy.runTime.second < 10)
+	{
+		cout << "0";
+	}
+	cout << dummy.runTime.second;
+	if (mil == 1)
+	{
+		cout << ":";
+		if (dummy.runTime.millisecond < 100)
+		{
+			cout << "0";
+		}
+		if (dummy.runTime.millisecond < 10)
+		{
+			cout << "0";
+		}
+		cout << dummy.runTime.millisecond;
+	}
+	cout << endl;
+
+	dummy.runDate = getToday();
+	dummy.number = game.returnRunCount() + 1;
+
+	return dummy;
+};
+
+//This creates a new run to be stored into game's vector
+//[DFGH] Step 26
+Run userCreateRun(bool mil, Game &game)
+{
+	Run dummy;
+	string lineGet = "";
+	cout << "Please type your speedrun in the format ";
+	if (mil)
+	{
+		cout << "hh:mm:ss:mmm" << endl;
+	}
+	else
+	{
+		cout << "hh:mm:ss" << endl;
+	}
+	cout << "_______" << endl;
+
+	getline (cin, lineGet);
+	while (!isTimeValid(lineGet, mil))
+	{
+		getline (cin, lineGet);
+	}
+	dummy.runTime = stringToTime(lineGet,mil);
+
+	cout << "Please type the date of your speedrun in the format dd-mm-yyyy" << endl;
+	cout << "_______" << endl;
+
+	getline (cin, lineGet);
+	while (!isDateValid(lineGet))
+	{
+		getline (cin, lineGet);
+	}
+	dummy.runDate = stringToDate(lineGet);
+	dummy.number = game.returnRunCount () + 1;
+	
+	return dummy;
+};
+
+//////////////////////////////////////////////---------Void functions---------//////////////////////////////////////////////
+//Step 0
 void initialize(vector <Game> &data)
 {
 	// For getline
@@ -118,7 +594,7 @@ void initialize(vector <Game> &data)
 	//The .txt file will likely be changed if encrypting is necessary
 	saved.open("Saved.txt");
 
-	//Step 2: There is no "Saved.txt" file, and a new one will be created.
+	//Step 2
 	if (saved.fail())
 	{
 //		cout << "\"Saved.txt\" file failed, creating new one..." << endl;
@@ -129,8 +605,8 @@ void initialize(vector <Game> &data)
 		saved.open ("Saved.txt");
 	}
 
-	//Step 1: There is a "Saved.txt" file, and it will be put into a vector of Games.
-	//Technically, Step 2 goes through this process as well, but since the file is empty, Step 2 skips this while function
+	//Step 1
+	//Step 2 goes through this process as well, but since the file is empty, Step 2 skips this while function
 	while (!saved.fail())
 	{
 		getline (saved, lineGet);
@@ -139,7 +615,7 @@ void initialize(vector <Game> &data)
 			if (isName (lineGet) == 1)
 			{
 				dummy.recordName(lineGet.substr(0, lineGet.length() - 2));
-				dummy.isRecordMil(isMil(lineGet));
+				dummy.isMil(isMilStored(lineGet));
 				runCheck = true;
 //				cout << "Game Title is " << lineGet.substr(0, lineGet.length() - 2) << endl;
 			}
@@ -151,12 +627,14 @@ void initialize(vector <Game> &data)
 				runCheck = false;
 				data.push_back(dummy);
 //				cout << "There are a total of " << dummy.returnRunCount() << " runs saved for the game " << dummy.returnGameName() << "." << endl;
+//				cout << dummy.returnGameName() << " has mil set to " << dummy.returnMil() << endl;
 				dummy.clearAll();
 				dummyTime.millisecond = 0;
 			}
 			else
 			{
 				//The flags determine what portion of the run from getLine the program is reading.
+				//[UIOP]	
 				int flag = 0, dummyNumber = 0;
 				for (int i = 0; i < (lineGet.length() - 1); i++)
 				{
@@ -316,47 +794,6 @@ void initialize(vector <Game> &data)
 							dummyNumber = 0;
 							dummyRun.runDate = dummyDate;
 							dummy.storeRun(dummyRun);
-
-//[QWER]						//The following code below will be useful for Step 19 and Step 20
-							//It should eventually be its own function
-
-/*
-							cout << "Run #: " << dummyRun.number << " - ";
-							if (dummyRun.runTime.hour < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runTime.hour << ":"; 
-							if (dummyRun.runTime.minute < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runTime.minute << ":";
-							if (dummyRun.runTime.second < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runTime.second << ":";
-							if (dummyRun.runTime.millisecond < 100)
-							{
-								cout << "0";
-							}
-							if (dummyRun.runTime.millisecond < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runTime.millisecond << " on ";
-							if (dummyRun.runDate.day < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runDate.day << "/";
-							if (dummyRun.runDate.month < 10)
-							{
-								cout << "0";
-							}
-							cout << dummyRun.runDate.month << "/" << dummyRun.runDate.year << endl;
-*/
 						}
 						else
 						{
@@ -377,9 +814,44 @@ void initialize(vector <Game> &data)
 	return;
 };
 
+// This lists all games stored in data
+void listGame(vector <Game> data)
+{
+	Game dummy;
+	cout << "This is the list of all games you currently have." << endl;
+	for (int dfg = 0; dfg <= (data.size() - 1); dfg++)
+	{
+		dummy = data [dfg];
+		cout << (dfg + 1) << ". " << dummy.returnGameName() << endl;
+	}
+	cout << "_______" << endl << endl;	
+	return;
+};
+
+//////////////////////////////////////////////---------String functions---------//////////////////////////////////////////////
+
+// This function will take the user's input and change all lowercase alphabetic characters to uppercase for the ease of menuing
+// [YUIO]
+string stringInterpreter (string str)
+{
+	if (str == "")
+	{
+		return str;
+	}
+	for (int i = 0; i <= (str.length() - 1); i++)
+	{
+		if ((str [i] >= 97) && (str [i] <= 122))
+		{
+			str [i] = str [i] - 32;
+		}
+	}
+	return str;
+};
+
+//////////////////////////////////////////////---------Game functions---------//////////////////////////////////////////////
+
 //This creates a new game to be input into the vector of all games
-//POTENTIAL OPTIMIZATION: having a cancel function put in here, in case the user wants to back out of here [RTYU]
-//Step 5, Step 25
+//[DFGH] Step 5, Step 25
 Game createGame()
 {
 	Game dummy;
@@ -420,372 +892,47 @@ Game createGame()
 	cout << "_______" << endl;
 
 	getline (cin, lineGet);
-	dummy.isRecordMil(YN_Answer(lineGet));
+	dummy.isMil(YN_Answer(lineGet));
 	return dummy;
 };
 
-//This creates a new run to be stored into game's vector
-//POTENTIAL OPTIMIZATION: having a cancel function put in here, in case the user wants to back out of here [RTYU]
-//Step 26
-Run userCreateRun(bool isMil, Game game)
+// This sorts the vector into chronological order via insertionSort
+// [VBNM]
+vector <int> chronologicalOrder(vector <int> number)
 {
-	Run dummyRun;
-	Time dummyTime;
-	Date dummyDate;
-	string lineGet = "";
-	cout << "Please type your speedrun in the format ";
-	if (isMil)
+	int dummy;
+	if ((number.size() == 0) || (number.size() == 1))
 	{
-		cout << "hh:mm:ss:mmm" << endl;
+		return number;
 	}
-	else
+
+	for (int zxc = 0; zxc <= (number.size() - 1); zxc++)
 	{
-		cout << "hh:mm:ss" << endl;
-	}
-	cout << "_______" << endl;
-
-	getline (cin, lineGet);
-	while (!isRunValid(lineGet, isMil))
-	{
-		getline (cin, lineGet);
-	}
-	dummyTime = stringToTime(lineGet,isMil);
-
-	cout << "Please type the date of your speedrun in the format dd-mm-yyyy" << endl;
-	cout << "_______" << endl;
-
-	getline (cin, lineGet);
-	while (!isDateValid(lineGet))
-	{
-		getline (cin, lineGet);
-	}
-	dummyDate = stringToDate(lineGet);
-	int count = game.returnRunCount ();
-	
-	return dummyRun;
-}
-
-//This checks if the user's input is valid in terms of time
-bool isRunValid (string str, bool mil)
-{
-	int colonCount = 0, numCount = 0;
-	bool initMil = mil;
-
-	for (int j = (str.length() - 1); j >= 0; j--)
-	{
-		if (str [j] == 58)
+		for (int asd = (zxc + 1); asd <= (number.size() - 1); asd++)
 		{
-			colonCount++;
-
-			// Potential optimization: allowing single/double digit millisecond or single digit second/minute
-			//[ERTY]
-			if ((numCount < 2) || (numCount > 3))
+			if (number [asd] < number [zxc])
 			{
-				cout << "The run is not valid due to invalid numerical input." << endl;
-				if (mil == true)
-				{
-					cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
-				}
-				else
-				{
-					cout << "Follow the format of \"hhh:mm:ss\"." << endl << endl;
-				}
-				cout << "Please retype the time." << endl;
-				cout << "_______" << endl;
-				return false;
+				dummy = number [asd];
+				number [asd] = number [zxc];
+				number [zxc] = dummy;
 			}
-
-			if ((numCount == 3) && (mil == true))
+			else if (number [asd] == number [zxc])
 			{
-				if (initMil == true)
+				dummy = asd;
+				while (asd < (number.size() - 1))
 				{
-					if (colonCount != 1)
-					{
-						cout << "The run is not valid due to invalid numerical input." << endl;
-						cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
-						cout << "Please retype the time." << endl;
-						cout << "_______" << endl;
-						return false;
-					}
-					else
-					{
-						initMil = false;
-					}
+					number [asd] = number[asd + 1];
+					asd++;
 				}
-				else
-				{
-					cout << "The run is not valid due to invalid numerical input." << endl;
-					cout << "Follow the format of \"hhh:mm:ss:mmm\"." << endl << endl;
-					cout << "Please retype the time." << endl;
-					cout << "_______" << endl;
-					return false;
-				}
+				number.pop_back();
+				asd = dummy;
 			}
-
-			numCount = 0;
-		}
-		else if ((str [j] >= 48) && (str [j] <= 57))
-		{
-			numCount++;
-		}
-		else
-		{
-			cout << "The run is not valid due to non numerical values or colons" << endl << endl;
-			cout << "Please retype the time." << endl;
-			cout << "_______" << endl;
-			return false;
 		}
 	}
-
-	if ((colonCount < 2) && (mil == true))
-	{
-		cout << "This run is not valid due to too little colons." << endl;
-		cout << "If your is less than a minute long, use the format \"00:ss:mmm\"." << endl << endl;
-		cout << "Please retype the time." << endl;
-		cout << "_______" << endl;
-		return false;
-	}
-
-	if ((colonCount < 1) && (mil == false))
-	{
-		cout << "This run is not valid due to too little colons." << endl;
-		cout << "If your is less than a minute long, use the format \"00:00:ss\"." << endl << endl;
-		cout << "Please retype the time." << endl;
-		cout << "_______" << endl;
-		return false;
-	}
-
-	return true;
+	return number;
 };
 
-//This checks if the user's input is valid in terms of the date
-//[RTYU]
-//This function needs appropriate date structures (ie. 31 days, 12 months, etc.)
-bool isDateValid(string str)
-{
-	int numCount = 0, flag = 0;
-
-	if (str.length() != 10)
-	{
-		cout << "The date is not valid due to an incorrect size" << endl << endl;
-		cout << "Please retype the date." << endl;
-		cout << "_______" << endl;
-		return false;
-	}
-
-	for (int abc = 0; abc <= (str.length() - 1); abc++)
-	{
-		if (str [abc] == 45)
-		{
-			if ((flag == 1) || (flag == 0))
-			{
-				if (numCount == 2)
-				{
-					flag++;
-					numCount = 0;
-				}
-				else
-				{
-					cout << "The date is not valid due to invalid numerical values" << endl << endl;
-					cout << "Please retype the date." << endl;
-					cout << "_______" << endl;
-					return false;
-				}
-			}
-			else if (flag == 2)
-			{
-				if (numCount == 4)
-				{
-					flag++;
-					numCount = 0;
-				}
-				else
-				{
-					cout << "The date is not valid due to invalid numerical values" << endl << endl;
-					cout << "Please retype the date." << endl;
-					cout << "_______" << endl;
-					return false;
-				}
-			}
-		}
-		else
-		{
-			if ((str [abc] >= 48) && (str [abc] <= 57))
-			{
-				numCount++;
-			}
-			else
-			{
-				cout << "The date is not valid due to non numerical values" << endl << endl;
-				cout << "Please retype the date." << endl;
-				cout << "_______" << endl;
-				return false;
-			}
-		}
-	}
-	return true;
-};
-
-//This converts the string given into a time, provided it passes isRunValid
-Time stringToTime (string str, bool mil)
-{
-	Time dummy;
-	
-	int answer = 0, flag = 0;
-
-	for (int k = 0; k <= (str.length() - 1); k++)
-	{
-		if (flag == 0)
-		{
-			if (str [k] == 58)
-			{
-				flag = 1;
-				dummy.hour = answer;
-				answer = 0;
-			}
-			else
-			{
-				answer = (answer * 10) + (str [k] - 48);
-			}
-		}
-		else if (flag == 1)
-		{
-			if (str [k] == 58)
-			{
-				flag = 2;
-				dummy.minute = answer;
-				answer = 0;
-			}
-			else
-			{
-				answer = (answer * 10) + (str [k] - 48);
-			}
-		}
-		else if (flag == 2)
-		{
-			if (str [k] == 58)
-			{
-				flag = 3;
-				dummy.second = answer;
-				answer = 0;
-			}
-			else
-			{
-				answer = (answer * 10) + (str [k] - 48);
-			}
-		}
-		else
-		{
-			answer = (answer * 10) + (str [k] - 48);
-		}
-	}
-	if (mil == 1)
-	{
-		dummy.millisecond = answer;
-	}
-	else
-	{
-		dummy.second = answer;
-	}
-
-	return dummy;
-};
-
-//This converts the string given into a date, provided it passes isDateValid
-Date stringToDate (string str)
-{
-	Date dummy;
-	
-	int answer = 0, flag = 0;
-
-	for (int bcd = 0; bcd <= (str.length() - 1); bcd++)
-	{
-		if (flag == 0)
-		{
-			if (str [bcd] == 45)
-			{
-				flag = 1;
-				dummy.day = answer;
-				answer = 0;
-			}
-			else
-			{
-				answer = (answer * 10) + (str [bcd] - 48);
-			}
-		}
-		else if (flag == 1)
-		{
-			if (str [bcd] == 58)
-			{
-				flag = 2;
-				dummy.month = answer;
-				answer = 0;
-			}
-			else
-			{
-				answer = (answer * 10) + (str [bcd] - 48);
-			}
-		}
-		else
-		{
-			answer = (answer * 10) + (str [bcd] - 48);
-		}
-	}
-
-	dummy.year = answer;
-
-	return dummy;
-};
-
-//Step 29, Step 6
-int loadGame(string str, vector <Game> data)
-{
-	//loadGame will have two ways of selecting games: via exact name or numerical value
-	Game dummy;
-	int num = 0;
-
-	//This checks if the user types in a numerical value for 
-	for (int sdf = 0; sdf <= (str.length() - 1); sdf++)
-	{
-		if ((str [sdf] >= 48) && (str [sdf] <= 57))
-		{
-			num = (num * 10) + (str [sdf] - 48);
-		}
-		else
-		{
-			num = INT_MIN;
-		}
-	}
-
-	for (int asd = 0; asd <= (data.size() - 1); asd++)
-	{
-		dummy = data [asd];
-		if (str == dummy.returnGameName())
-		{
-			return asd;
-		}
-		else if ((asd + 1) == num)
-		{
-			return asd;
-		}
-	}
-
-	//If the function hits this point, the function will return INT_MIN to state a fail point
-	return INT_MIN;
-};
-
-void listGame(vector <Game> data)
-{
-	Game dummy;
-	cout << "This is the list of all games you currently have." << endl;
-	for (int dfg = 0; dfg <= (data.size() - 1); dfg++)
-	{
-		dummy = data [dfg];
-		cout << (dfg + 1) << ". " << dummy.returnGameName() << endl;
-	}
-	cout << "_______" << endl << endl;	
-	return;
-};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #endif // FUNCTION_CPP
 
