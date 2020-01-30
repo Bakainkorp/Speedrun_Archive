@@ -3,7 +3,7 @@ Filename: menu.cpp
 
 Purpose: Implementation file for the menu and menuing functions
 
-Date last worked on (dd-mm-yy): 06-01-20
+Date last worked on (dd-mm-yy): 29-01-20
 
 ----Notes----
 
@@ -11,7 +11,8 @@ Date last worked on (dd-mm-yy): 06-01-20
 
 ----Notable Bugs / Optimizations----
 
--The menu functions may need to be separated, for ease of understanding. As of now, this file will end up as the longest file of the code.
+- The menu functions may need to be separated, for ease of understanding. As of now, this file will end up as the longest file of the code.
+
 
 */
 
@@ -53,6 +54,7 @@ bool M1_Question(bool repeat, vector <Game> data)
 	Menu1 M1 = M1_FAIL;
 	if (repeat == false)
 	{
+		cout << "_______" << endl;
 		cout << "Welcome to your personal speedrun archive!" << endl;
 		cout << "What would you like to do?" << endl;
 		cout << "_______" << endl;
@@ -93,6 +95,16 @@ bool M1_Question(bool repeat, vector <Game> data)
 					cout << "Please either type the name (case sensitive) or the number next to the game's name." << endl;
 				}
 				listGame(data);
+			}
+
+			Game dummy = data [gameNum];
+			if (dummy.returnRunCount() > 0)
+			{
+				M14_Question(0, data, gameNum);
+			}
+			else
+			{
+				M13_Question(0, data, gameNum);
 			}
 			return 1;
 		}
@@ -274,14 +286,43 @@ void M3_Question(bool repeat, vector <Game> data)
 		{
 			Run dummyRun;
 			//Step 26, Step 27
-			dummyRun = userCreateRun(dummy.returnRecordMil(), dummy);
+			dummyRun = userCreateRun(dummy.returnMil(), dummy);
 			exit = !(M6_Question (0, data));
 		}
+		cout << "Returning to main menu..." << endl << endl;
+		cout << "_______" << endl;
+
+		M1_Question(0, data);
 		return;
 	}
-	//This option is current not finished
 	else if (M3 == M3_USE)
 	{
+		Game dummy = createGame();
+		bool exit = false;
+		while (exit == false)
+		{
+			//Step 7
+			Run dummyRun = timer (dummy.returnMil(), dummy);
+			if (M11_Question(0, data))
+			{
+				dummy.storeRun(dummyRun);
+				cout << "Run saved!" << endl;
+			}
+			else
+			{
+				cout << "Run not saved!" << endl;
+			}
+
+			exit = !M12_Question(0, data);
+			if (exit == true)
+			{
+				cout << "Returning to main menu..." << endl << endl;
+				cout << "_______" << endl;
+			}
+		}
+
+		data.push_back(dummy);
+		M1_Question(0, data);
 		return;
 	}
 	else if (M3 == M3_BACK)
@@ -367,6 +408,7 @@ void M5_Question(bool repeat, vector <Game> data)
 	}
 	string M5_input = "";
 	Menu5 M5 = M5_FAIL;
+	Run dummyRun;
 
 	if (repeat == false)
 	{
@@ -386,11 +428,43 @@ void M5_Question(bool repeat, vector <Game> data)
 	// Create and Play has been started, but has not been finished
 	if (M5 == M5_CREATE)
 	{
+		//Step 5
 		Game dummy = createGame();
+
+		bool exit = false;
+		while (exit == false)
+		{
+			//Step 7
+			dummyRun = timer (dummy.returnMil(), dummy);
+
+			//Step 10
+			if (M11_Question(0, data))
+			{
+				//Step 11
+				dummy.storeRun(dummyRun);
+				cout << "Run saved!" << endl;
+			}
+			else
+			{
+				cout << "Run not saved!" << endl;
+			}
+
+			//Step 12
+			exit = !M12_Question(0, data);
+			if (exit == true)
+			{
+				cout << "Returning to main menu..." << endl << endl;
+				cout << "_______" << endl;
+			}
+		}
+
+		data.push_back(dummy);
+		M1_Question(0, data);
 		return;
 	}
 	else if (M5 == M5_PLAY)
 	{
+		//Step 6
 		listGame(data);
 		cout << "Which game data would you like to speedrun?" << endl;
 		cout << "Either type the name (case sensitive) or the number next to the game's name." << endl;
@@ -404,9 +478,39 @@ void M5_Question(bool repeat, vector <Game> data)
 			{
 				cout << "Invalid input" << endl;
 				cout << "Please either type the name (case sensitive) or the number next to the game's name." << endl;
+				listGame(data);
 			}
-			listGame(data);
 		}
+		Game dummy = data [gameNum];
+
+		bool exit = false;
+		while (exit == false)
+		{
+			//Step 7
+			dummyRun = timer (dummy.returnMil(), dummy);
+			//Step 10
+			if (M11_Question(0, data))
+			{
+				//Step 11
+				dummy.storeRun(dummyRun);
+				cout << "Run saved!" << endl;
+			}
+			else
+			{
+				cout << "Run not saved!" << endl;
+			}
+
+			//Step 12
+			exit = !M12_Question(0, data);
+			if (exit == true)
+			{
+				cout << "Returning to main menu..." << endl << endl;
+				cout << "_______" << endl;
+			}
+		}
+
+		data [gameNum] = dummy;
+		M1_Question(0, data);
 		return;
 	}
 	else if (M5 == M5_BACK)
@@ -502,7 +606,7 @@ Menu8 M8_Answer (string str)
 	{
 		return M8_MANUAL;
 	}
-	else if ((str == "3") || (str == "E")  || (str == "EDIT") || (str == "EDIT EXISTING RUNS"))
+	else if ((str == "3") || (str == "E")  || (str == "EDIT") || (str == "EDIT EXISTING RUNS OR GAME INFORMATION"))
 	{
 		return M8_EDIT;
 	}
@@ -536,7 +640,7 @@ void M8_Question(bool repeat, vector <Game> data, int gameNum)
 
 	cout << "1. [T]ime new runs" << endl;
 	cout << "2. [M]anually add new runs" << endl;
-	cout << "3. [E]dit existing runs" << endl;
+	cout << "3. [E]dit existing runs or game information" << endl;
 	cout << "4. [D]elete existing runs or game" << endl;
 	cout << "5. [G]o back" << endl;
 
@@ -548,6 +652,29 @@ void M8_Question(bool repeat, vector <Game> data, int gameNum)
 	//
 	if (M8 == M8_TIME)
 	{
+		cout << "Recording new runs via timer." << endl;
+		bool exit = false;
+		while (exit == false)
+		{
+			//Step 7
+			Run dummyRun = timer (dummy.returnMil(), dummy);
+			if (M11_Question(0, data))
+			{
+				dummy.storeRun(dummyRun);
+				data [gameNum] = dummy;
+				cout << "Run saved!" << endl;
+			}
+			else
+			{
+				cout << "Run not saved!" << endl;
+			}
+
+			exit = !M12_Question(0, data);
+			if (exit == true)
+			{
+				M7_Question (0, data);
+			}
+		}
 		return;
 	}
 	else if (M8 == M8_MANUAL)
@@ -557,7 +684,7 @@ void M8_Question(bool repeat, vector <Game> data, int gameNum)
 		{
 			Run dummyRun;
 			//Step 26, Step 27
-			dummyRun = userCreateRun(dummy.returnRecordMil(), dummy);
+			dummyRun = userCreateRun(dummy.returnMil(), dummy);
 			exit = !(M6_Question (0, data));
 		}
 		//Step 28
@@ -567,6 +694,7 @@ void M8_Question(bool repeat, vector <Game> data, int gameNum)
 	}
 	else if (M8 == M8_EDIT)
 	{
+		M15_Question (0, data, gameNum);
 		return;
 	}
 	else if (M8 == M8_DELETE)
@@ -589,7 +717,7 @@ void M8_Question(bool repeat, vector <Game> data, int gameNum)
 	return;
 };
 
-//This determines the answer the user inputs in Step 4
+//This determines the answer the user inputs in Step 47
 Menu9 M9_Answer (string str)
 {
 	str = stringInterpreter (str);
@@ -642,6 +770,7 @@ void M9_Question(bool repeat, vector <Game> data, int gameNum)
 	// Run is not yet finished.
 	if (M9 == M9_RUN)
 	{
+
 		return;
 	}
 	else if (M9 == M9_GAME)
@@ -694,6 +823,7 @@ void M10_Question(bool repeat, vector <Game> data, vector <int> item)
 	M10 = YN_Answer (M10_input);
 
 	//These are the options for the menu 10
+	//Step 50
 	if (M10 == 1)
 	{
 		if (item.size() == 1)
@@ -723,6 +853,659 @@ void M10_Question(bool repeat, vector <Game> data, vector <int> item)
 	}
 	return;
 };
+
+// This is the confirmation of saving a recorded run
+// Step 11
+bool M11_Question(bool repeat, vector <Game> data)
+{
+	string M11_input = "";
+	bool M11 = 0;
+
+	if (repeat == false)
+	{
+		cout << 	"Would you like to save this run?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [Y]es" << endl;
+	cout << "2. [N]o" << endl;
+
+	getline (cin,M11_input);
+	cout << endl;
+	M11 = YN_Answer (M11_input);
+
+	return M11;
+};
+
+// This is to see if the user wishes to record an additional run
+// Step 12
+bool M12_Question(bool repeat, vector <Game> data)
+{
+	string M12_input = "";
+	bool M12 = 0;
+
+	if (repeat == false)
+	{
+		cout << 	"Would you like to continue speedrunning?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [Y]es" << endl;
+	cout << "2. [N]o" << endl;
+
+	getline (cin,M12_input);
+	cout << endl;
+	M12 = YN_Answer (M12_input);
+
+	return M12;
+};
+
+//This determines the answer the user inputs in Step 54
+Menu13 M13_Answer (string str)
+{
+	str = stringInterpreter (str);
+	if ((str == "1") || (str == "C")  || (str == "CREATE") || (str == "CREATE NEW RUNS"))
+	{
+		return M13_CREATE;
+	}
+	else if ((str == "2") || (str == "P") || (str == "PICK") || (str == "PICK A DIFFERENT GAME"))
+	{
+		return M13_PICK;
+	}
+	else if ((str == "3") || (str == "G") || (str == "GO") || (str == "GO BACK"))
+	{
+		return M13_BACK;
+	}
+	else
+	{
+		return M13_FAIL;
+	}
+};
+// This is the record path, if the user wishes to view a game without any runs.
+// Step 54
+void M13_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M13_input = "";
+	Menu13 M13 = M13_FAIL;
+	Game dummy = data [gameNum];
+
+	if (repeat == false)
+	{
+		cout << dummy.returnGameName() << " has no recorded runs!" << endl;
+		cout << "Would you like to create new runs or pick a different game to view?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << 	"1. [C]reate new runs" << endl;
+	cout << "2. [P]ick a different game" << endl;
+	cout << "3. [G]o Back" << endl;
+
+	getline (cin,M13_input);
+	cout << endl;
+	M13 = M13_Answer (M13_input);
+
+	if (M13 == M13_CREATE)
+	{
+		M8_Question (0, data, gameNum);
+		return;
+	}
+	else if (M13 == M13_PICK)
+	{
+		
+		return;
+	}
+	else if (M13 == M13_BACK)
+	{
+		M1_Question(0, data);
+		return;
+	}
+	else
+	{
+		cout << "Entry unrecognized. Retype your entry." << endl;
+		cout << endl;
+		M13_Question(1, data, gameNum);
+		return;
+	}
+	return;
+};
+
+//This determines the answer the user inputs in Step 17
+Menu14 M14_Answer (string str)
+{
+	str = stringInterpreter (str);
+	if ((str == "1") || (str == "S")  || (str == "SELECT") || (str == "SELECT A DIFFERENT GAME"))
+	{
+		return M14_SELECT;
+	}
+	else if ((str == "2") || (str == "V") || (str == "VIEW") || (str == "VIEW SPECIFIC RUNS"))
+	{
+		return M14_VIEW;
+	}
+	else if ((str == "3") || (str == "G") || (str == "GO") || (str == "GO BACK"))
+	{
+		return M14_BACK;
+	}
+	else
+	{
+		return M14_FAIL;
+	}
+};
+// This is the view path, showcasing all information
+// Step 17
+void M14_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M14_input = "";
+	Menu14 M14 = M14_FAIL;
+	Game dummy = data [gameNum];
+
+	if (repeat == false)
+	{
+		if (dummy.returnRunCount() > 0)
+		{
+			dummy.listAllRuns();
+		}
+		else
+		{
+			M13_Question(0, data, gameNum);
+			return;
+		}
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [S]elect a different Game" << endl;
+	cout << "2. [V]iew Specific Runs" << endl;
+	cout << "3. [G]o back" << endl;
+
+	getline (cin,M14_input);
+	cout << endl;
+	M14 = M14_Answer (M14_input);
+
+	if (M14 == M14_SELECT)
+	{
+		listGame(data);
+		cout << "Which game data would you like to view?" << endl;
+		cout << "Either type the name (case sensitive) or the number next to the game's name." << endl;
+		cout << "_______" << endl;
+		int gameNum = INT_MIN;
+		while (gameNum == INT_MIN)
+		{
+			getline (cin, M14_input);
+			gameNum = loadGame(M14_input, data);
+			if (gameNum == INT_MIN)
+			{
+				cout << "Invalid input" << endl;
+				cout << "Please either type the name (case sensitive) or the number next to the game's name." << endl;
+			}
+			listGame(data);
+		}
+
+		M14_Question (0,data,gameNum);
+		return;
+	}
+	else if (M14 == M14_VIEW)
+	{
+		return;
+	}
+	else if (M14 == M14_BACK)
+	{
+		M1_Question(0, data);
+		return;
+	}
+	else
+	{
+		cout << "Entry unrecognized. Retype your entry." << endl;
+		cout << endl;
+		M14_Question(1, data, gameNum);
+		return;
+	}
+	return;
+};
+
+//This determines the answer the user inputs in Step 31
+Menu15 M15_Answer (string str)
+{
+	str = stringInterpreter (str);
+	if ((str == "1") || (str == "R")  || (str == "RUN"))
+	{
+		return M15_RUN;
+	}
+	else if ((str == "2") || (str == "E") || (str == "ENTIRE") || (str == "GAME") || (str == "ENTIRE GAME"))
+	{
+		return M15_GAME;
+	}
+	else if ((str == "3") || (str == "G") || (str == "GO") || (str == "GO BACK"))
+	{
+		return M15_BACK;
+	}
+	else
+	{
+		return M15_FAIL;
+	}
+};
+// This is the beginning of the Deletion path from Step 30
+// Step 31
+void M15_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M15_input = "";
+	Menu15 M15 = M15_FAIL;
+	Game dummy = data [gameNum];
+
+	//This vector stores which runs will be editted.
+	//item [0] will always be gameNum.
+	//If item only has gameNum, the program will edit the entirety of the game
+	vector <int> item;
+	item.push_back(gameNum);
+
+	if (repeat == false)
+	{
+		cout << "Would you like to edit specific runs, or edit the entirety of  \"" << dummy.returnGameName() << "\"?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << 	"1. [R]un" << endl;
+	cout << "2. [E]ntire Game" << endl;
+	cout << "3. [G]o Back" << endl;
+
+	getline (cin,M15_input);
+	cout << endl;
+	M15 = M15_Answer (M15_input);
+
+	// These are the options for the menu 15.
+	// Run is not yet finished.
+	if (M15 == M15_RUN)
+	{
+		dummy.listAllRuns();
+		cout << endl <<  "_______" << endl;
+		cout << "Which run would you like to edit?" << endl;
+		
+		getline (cin, M15_input);
+		while (!isNumber(M15_input))
+		{
+			cout << "Please enter a valid number." << endl;
+			getline (cin, M15_input);
+		}
+
+		while ((stringToInt(M15_input) - 1) > dummy.returnRunCount())
+		{
+			while (!isNumber(M15_input))
+			{
+				cout << "Please enter a valid number." << endl;
+				getline (cin, M15_input);
+			}
+			cout << "Please enter a valid number." << endl;
+			getline (cin, M15_input);
+		}
+		
+		M20_Question (0, data, gameNum, (stringToInt(M15_input)));
+
+		return;
+	}
+	else if (M15 == M15_GAME)
+	{
+		M16_Question(0, data, gameNum);
+		return;
+	}
+	else if (M15 == M15_BACK)
+	{
+		M2_Question(0, data);
+		return;
+	}
+	else
+	{
+		cout << "Entry unrecognized. Retype your entry." << endl;
+		cout << endl;
+		M15_Question(1, data, gameNum);
+		return;
+	}
+	return;
+};
+
+//This determines the answer the user inputs in Step 32
+Menu16 M16_Answer (string str)
+{
+	str = stringInterpreter (str);
+	if ((str == "1") || (str == "M")  || (str == "MILLISECONDS"))
+	{
+		return M16_MILLISECOND;
+	}
+	else if ((str == "2") || (str == "N") || (str == "NAME"))
+	{
+		return M16_NAME;
+	}
+	else if ((str == "3") || (str == "G") || (str == "GO") || (str == "GO BACK"))
+	{
+		return M16_BACK;
+	}
+	else
+	{
+		return M16_FAIL;
+	}
+};
+// This is the beginning of the Deletion path from Step 30
+// Step 32
+void M16_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M16_input = "";
+	Menu16 M16 = M16_FAIL;
+	Game dummy = data [gameNum];
+
+	//This vector stores which runs will be editted.
+	//item [0] will always be gameNum.
+	//If item only has gameNum, the program will edit the entirety of the game
+	vector <int> item;
+	item.push_back(gameNum);
+
+	if (repeat == false)
+	{
+		cout << "What would you like to change?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << 	"1. [M]illiseconds" << endl;
+	cout << "2. [N]ame" << endl;
+	cout << "3. [G]o Back" << endl;
+
+	getline (cin,M16_input);
+	cout << endl;
+	M16 = M16_Answer (M16_input);
+
+	// These are the options for the menu 16.
+	if (M16 == M16_MILLISECOND)
+	{
+		if (M18_Question(0, data, gameNum) == 1)
+		{
+			if (M19_Question(0, data, gameNum) == 1)
+			{
+				if (dummy.returnMil() == 1)
+				{
+					cout << "Milliseconds are no longer being stored." << endl;
+					dummy.isMil(0);
+					data [gameNum] = dummy;
+				}
+				else
+				{
+					cout << "Milliseconds will start being stored." << endl;
+					dummy.isMil(1);
+					data [gameNum] = dummy;
+				}
+			}
+		}
+		M7_Question(0, data);
+		return;
+	}
+	else if (M16 == M16_NAME)
+	{
+		cout << "What would you like to rename \"" << dummy.returnGameName() << "\"?" << endl;
+		cout << "_______" << endl;
+
+		getline (cin, M16_input);
+		cout << endl;
+		if (M17_Question(0, data, M16_input) == false)
+		{
+			dummy.recordName(M16_input);
+			data [gameNum] = dummy;
+		}
+		M7_Question(0, data);
+		return;
+	}
+	else if (M16 == M16_BACK)
+	{
+		M2_Question(0, data);
+		return;
+	}
+	else
+	{
+		cout << "Entry unrecognized. Retype your entry." << endl;
+		cout << endl;
+		M16_Question(1, data, gameNum);
+		return;
+	}
+	return;
+};
+
+// This is to see if the user wishes to change the name of the game
+// Step 33
+bool M17_Question(bool repeat, vector <Game> data, string str)
+{
+	string M17_input = "";
+	bool M17 = 0;
+
+	if (repeat == false)
+	{
+		cout << 	"Is the name \"" << str << "\" correct?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [Y]es" << endl;
+	cout << "2. [N]o" << endl;
+
+	getline (cin,M17_input);
+	cout << endl;
+	M17 = YN_Answer (M17_input);
+
+	return M17;
+};
+
+// This is to see if the user wishes to change if milliseconds are recorded or not
+// Step 36
+bool M18_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M18_input = "";
+	bool M18 = 0;
+	Game dummy = data [gameNum];
+
+	if (repeat == false)
+	{
+		if (dummy.returnMil() == 1)
+		{
+			cout << 	"Would you like to stop recording milliseconds for \"" << dummy.returnGameName() << "\"?" << endl;
+		}
+		else
+		{
+			cout << 	"Would you like to start recording milliseconds for \"" << dummy.returnGameName() << "\"?" << endl;
+		}
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [Y]es" << endl;
+	cout << "2. [N]o" << endl;
+
+	getline (cin,M18_input);
+	cout << endl;
+	M18 = YN_Answer (M18_input);
+
+	return M18;
+};
+
+// This is to see if the user wishes to change the name of the game
+// Step 38
+bool M19_Question(bool repeat, vector <Game> data, int gameNum)
+{
+	string M19_input = "";
+	bool M19= 0;
+	Game dummy = data [gameNum];
+
+	if (repeat == false)
+	{
+		if (dummy.returnMil() == 1)
+		{
+			cout << "WARNING!" << endl;
+			cout << "_______" << endl;
+			cout << "If you stop recording milliseconds, all previous runs of \"" << dummy.returnGameName() << "\" will no longer have milliseconds." << endl;
+			cout << 	"Are you sure you would like to stop recording milliseconds for \"" << dummy.returnGameName() << "\"?" << endl;
+		}
+		else
+		{
+			cout << "WARNING!" << endl;
+			cout << "_______" << endl;
+			cout << "If you stop recording milliseconds, all previous runs of \"" << dummy.returnGameName() << "\" will not have milliseconds stored." << endl;
+			cout << 	"Are you sure you would like to start recording milliseconds for \"" << dummy.returnGameName() << "\"?" << endl;
+		}
+		cout << "_______" << endl;
+	}
+
+	cout << "1. [Y]es" << endl;
+	cout << "2. [N]o" << endl;
+
+	getline (cin,M19_input);
+	cout << endl;
+	M19 = YN_Answer (M19_input);
+
+	return M19;
+};
+
+//This determines the answer the user inputs in Step 40
+Menu20 M20_Answer (string str)
+{
+	str = stringInterpreter (str);
+	if ((str == "1") || (str == "T")  || (str == "TIME"))
+	{
+		return M20_TIME;
+	}
+	else if ((str == "2") || (str == "D") || (str == "DATE"))
+	{
+		return M20_DATE;
+	}
+	else if ((str == "3") || (str == "O") || (str == "ORDER"))
+	{
+		return M20_ORDER;
+	}
+	else if ((str == "4") || (str == "G") || (str == "GO") || (str == "GO BACK"))
+	{
+		return M20_BACK;
+	}
+	else
+	{
+		return M20_FAIL;
+	}
+};
+// This is the beginning of the Deletion path from Step 30
+// Step 40
+void M20_Question(bool repeat, vector <Game> &data, int gameNum, int runNum)
+{
+	string M20_input = "";
+	Menu20 M20 = M20_FAIL;
+	Game dummy = data [gameNum];
+	Run dummyRun = dummy.returnRun(runNum);
+
+	if (repeat == false)
+	{
+		cout << "What would you like to change?" << endl;
+		cout << "_______" << endl;
+	}
+
+	cout << 	"1. [T]ime" << endl;
+	cout << "2. [D]ate" << endl;
+	cout << "3. [O]rder" << endl;
+	cout << "4. [G]o Back" << endl;
+
+	getline (cin,M20_input);
+	cout << endl;
+	M20 = M20_Answer (M20_input);
+
+	// These are the options for the menu 16.
+	if (M20 == M20_TIME)
+	{
+		Time dummyTime;
+
+		cout << "Please type your speedrun in the format ";
+		if (dummy.returnMil())
+		{
+			cout << "hh:mm:ss:mmm" << endl;
+		}
+		else
+		{
+			cout << "hh:mm:ss" << endl;
+		}
+		cout << "_______" << endl;
+
+		getline (cin,M20_input);
+		while (!isTimeValid(M20_input, dummy.returnMil()))
+		{
+			getline (cin, M20_input);
+		}
+
+		dummyTime = stringToTime (M20_input, dummy.returnMil());
+
+		cout << "Is ";
+		dummy.printTime(dummyTime);
+		cout << " correct?" << endl;
+		cout << "_______" << endl;
+
+		cout << "1. [Y]es" << endl;
+		cout << "2. [N]o" << endl;
+		cout << endl;
+
+		getline (cin, M20_input);
+
+		if (YN_Answer(M20_input))
+		{
+			dummyRun.runTime = dummyTime;
+			dummy.replaceRun(runNum, dummyRun);
+			data [gameNum] = dummy;
+		}
+		cout << endl;
+		
+		M7_Question (0, data);
+		return;
+	}
+	else if (M20 == M20_DATE)
+	{
+		Date dummyDate;
+
+		cout << "Please type the date of your speedrun in the format dd-mm-yyyy" << endl;
+		cout << "_______" << endl;
+
+		getline (cin,M20_input);
+		while (!isDateValid(M20_input))
+		{
+			getline (cin, M20_input);
+		}
+
+		dummyDate = stringToDate (M20_input);
+		dummyRun.runDate = dummyDate;
+
+		cout << "Is ";
+		dummy.printDate(dummyDate);
+		cout << " correct?" << endl;
+		cout << "_______" << endl;
+
+		cout << "1. [Y]es" << endl;
+		cout << "2. [N]o" << endl;
+		cout << endl;
+
+		getline (cin, M20_input);
+
+		if (YN_Answer(M20_input))
+		{
+//			dummyRun.runTime = dummyTime;
+			dummy.replaceRun(runNum, dummyRun);
+			data [gameNum] = dummy;
+		}
+		cout << endl;
+		
+		M7_Question (0, data);
+		return;
+	}
+	else if (M20 == M20_ORDER)
+	{
+		return;
+	}
+	else if (M20 == M20_BACK)
+	{
+		M2_Question(0, data);
+		return;
+	}
+	else
+	{
+		cout << "Entry unrecognized. Retype your entry." << endl;
+		cout << endl;
+		M20_Question(1, data, gameNum, runNum);
+		return;
+	}
+	return;
+};
+
 
 #endif // MENU_CPP
 
